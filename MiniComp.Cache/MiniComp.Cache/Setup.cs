@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using MiniComp.Cache.Provide;
 using MiniComp.Core.App;
 using MiniComp.Core.Extension;
 
@@ -17,8 +19,20 @@ public static class Setup
         ServiceLifetime serviceLifetime = ServiceLifetime.Singleton
     )
     {
-        services.Configure<ConnectionConfiguration>(HostApp.Configuration.GetSection("Redis"));
-        services.Inject(serviceLifetime, typeof(ICacheService), typeof(CacheService));
+        var configSection = HostApp.Configuration.GetSection(nameof(CacheConfiguration));
+        var config =
+            configSection.Get<CacheConfiguration>()
+            ?? throw new Exception("未配置CacheConfiguration");
+        services.Configure<CacheConfiguration>(configSection);
+        if (config.IsUseRedis)
+        {
+            services.Inject(serviceLifetime, typeof(ICacheService), typeof(RedisCacheService));
+        }
+        else
+        {
+            services.AddMemoryCache();
+            services.Inject(serviceLifetime, typeof(ICacheService), typeof(MemoryCacheService));
+        }
         return services;
     }
 }
