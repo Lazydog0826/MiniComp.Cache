@@ -9,7 +9,7 @@ public class LockTimeoutException : CustomException
     public LockTimeoutException()
         : base(new Status(StatusCode.DeadlineExceeded, "操作超时"), "操作超时") { }
 
-    public override WebApiResponse GetWebApiCallBack()
+    public override WebApiResponse GetWebApiResponse()
     {
         return WebApiResponse.Error("操作超时");
     }
